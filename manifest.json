@@ -1,17 +1,17 @@
 {
   "name": "TimeCalc Pro",
   "short_name": "TimeCalc",
-  "description": "Calculadora de tiempo profesional",
+  "description": "Calculadora de tiempo",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#38bdf8",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2082/2082582.png",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzFmMjkzYiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMjAiLz48cGF0aCBkPSJNMjU2IDEyMHYxMzZsOTAgOTAiIHN0cm9rZT0iIzM4YmRmOCIgc3Ryb2tlLXdpZHRoPSIyNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIi8+PHJlY3QgeD0iMzMwIiB5PSIzMzAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iMjAiIGZpbGw9IiMzOGJkZjgiLz48cGF0aCBkPSJNMzYwIDM3MGg2ME0zNjAgNDEwaDYwIiBzdHJva2U9IiMxZTI5M2IiIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
