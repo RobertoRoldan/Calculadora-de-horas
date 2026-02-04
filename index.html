@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+
+<script>
+  // Registro del Service Worker para que funcione offline
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TimeCalc Pro - Historial</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --btn-bg: #334155;
+            --btn-hover: #475569;
+            --memory: #10b981;
+            --delete: #f87171;
+            --shortcut: #818cf8;
+        }
+
+        /* Temas */
+        body.theme-amber { --accent: #fbbf24; --shortcut: #fbbf24; }
+        body.theme-rose { --accent: #fb7185; --shortcut: #fb7185; }
+        body.theme-emerald { --accent: #34d399; --shortcut: #34d399; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            touch-action: manipulation;
+        }
+
+        .calculator {
+            background: var(--card);
+            width: 340px;
+            padding: 25px;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Controles Superiores Mejorados */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            right: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        
+        .icon-btn:active { background: var(--btn-hover); transform: scale(0.95); }
+
+        /* Panel de Historial */
+        .history-panel {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--card);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .history-panel.show { display: flex; }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--accent);
+        }
+        .history-item span { color: var(--text-dim); font-size: 0.7rem; display: block; margin-bottom: 2px; }
+
+        /* Menú de Temas */
+        .theme-menu {
+            display: none;
+            position: absolute;
+            top: 55px; left: 25px;
+            background: var(--btn-bg);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            gap: 12px;
+            z-index: 101;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .theme-menu.show { display: flex; }
+        .theme-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .theme-dot.active { border-color: white; }
+
+        .screen {
+            text-align: right;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            position: relative;
+            margin-top: 40px;
+            min-height: 85px;
+        }
+
+        #history-mini { color: var(--text-dim); font-size: 0.85rem; min-height: 1.2rem; margin-bottom: 4px; }
+        #display { font-size: 2.1rem; font-weight: 700; color: var(--accent); }
+
+        .screen-actions { position: absolute; left: 12px; bottom: 12px; }
+        .screen-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: var(--text-dim);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .arrival-box {
+            margin-bottom: 15px; padding: 10px; border-radius: 12px;
+            background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.1);
+            text-align: center; font-size: 0.75rem; color: var(--text-dim);
+        }
+        #arrival-time { display: block; color: var(--accent); font-weight: 800; font-size: 0.95rem; }
+
+        .shortcuts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+        .btn-short {
+            background: rgba(129, 140, 248, 0.03); color: var(--shortcut);
+            border: 1px solid rgba(129, 140, 248, 0.2); border-radius: 6px;
+            padding: 8px 0; font-size: 0.65rem; font-weight: 700; cursor: pointer;
+        }
+
+        .memory-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .mem-slot { display: flex; flex-direction: column; gap: 4px; }
+        .mem-btn {
+            font-size: 0.7rem; padding: 10px 2px; background: rgba(16, 185, 129, 0.1);
+            color: var(--memory); border: 1px dashed var(--memory); border-radius: 10px; text-align: center; cursor: pointer;
+        }
+        .clear-mem {
+            font-size: 0.55rem; background: rgba(248, 113, 113, 0.05); color: var(--delete);
+            border: 1px solid rgba(248, 113, 113, 0.2); border-radius: 6px; padding: 2px; cursor: pointer;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        button:not(.btn-short):not(.clear-mem):not(.screen-btn):not(.icon-btn) {
+            aspect-ratio: 1; border: none; border-radius: 18px;
+            background: var(--btn-bg); color: var(--text-main); font-size: 1.25rem; font-weight: 600;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+        button:active { transform: scale(0.95); opacity: 0.8; }
+
+        .btn-op { background: rgba(56, 189, 248, 0.1) !important; color: var(--accent) !important; }
+        .btn-equal { background: var(--accent) !important; color: var(--bg) !important; grid-column: span 2; aspect-ratio: auto !important; }
+        .btn-clear-all { color: #f87171 !important; background: rgba(248, 113, 113, 0.1) !important; grid-column: span 2; aspect-ratio: auto !important; }
+    </style>
+</head>
+<body onclick="closeMenus()">
+
+<div class="calculator" onclick="event.stopPropagation()">
+    
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <span style="font-weight: 800;">REGISTROS</span>
+            <button class="icon-btn" onclick="toggleHistory()">CERRAR ✕</button>
+        </div>
+        <div class="history-list" id="historyListContainer"></div>
+        <button class="screen-btn" style="margin-top:15px; width:100%; padding: 12px;" onclick="clearHistory()">LIMPIAR TODO</button>
+    </div>
+
+    <div class="top-controls">
+        <button class="icon-btn" onclick="toggleThemeMenu(event)">🎨 TEMA</button>
+        <button class="icon-btn" onclick="toggleHistory()">🗒️ REGISTROS</button>
+    </div>
+    
+    <div class="theme-menu" id="themeMenu">
+        <div class="theme-dot active" style="background: #38bdf8;" onclick="setTheme('default', this)"></div>
+        <div class="theme-dot" style="background: #fbbf24;" onclick="setTheme('amber', this)"></div>
+        <div class="theme-dot" style="background: #fb7185;" onclick="setTheme('rose', this)"></div>
+        <div class="theme-dot" style="background: #34d399;" onclick="setTheme('emerald', this)"></div>
+    </div>
+
+    <div class="screen">
+        <div id="history-mini"></div>
+        <div id="display">0h 00m</div>
+        <div class="screen-actions">
+            <button class="screen-btn" onclick="copyDisplay()" id="copy-btn">COPIAR</button>
+        </div>
+    </div>
+
+    <div class="arrival-box">
+        Terminarías a las: <span id="arrival-time">--:--</span>
+    </div>
+
+    <div class="shortcuts">
+        <button class="btn-short" onclick="addShortcut(15)">+15m</button>
+        <button class="btn-short" onclick="addShortcut(30)">+30m</button>
+        <button class="btn-short" onclick="addShortcut(60)">+1h</button>
+    </div>
+
+    <div class="memory-container">
+        <div class="mem-slot"><div class="mem-btn" id="m1" onclick="handleMem(1)">M1: --</div><div class="clear-mem" onclick="clearMemSlot(1, event)">BORRAR</div></div>
+        <div class="mem-slot"><div class="mem-btn" id="m2" onclick="handleMem(2)">M2: --</div><div class="clear-mem" onclick="clearMemSlot(2, event)">BORRAR</div></div>
+        <div class="mem-slot"><div class="mem-btn" id="m3" onclick="handleMem(3)">M3: --</div><div class="clear-mem" onclick="clearMemSlot(3, event)">BORRAR</div></div>
+    </div>
+
+    <div class="grid">
+        <button class="btn-clear-all" onclick="clearCalc()">AC</button>
+        <button class="btn-op" onclick="setOp('mul')">×</button>
+        <button class="btn-op" onclick="setOp('sub')">−</button>
+        <button onclick="pressNum('7')">7</button><button onclick="pressNum('8')">8</button><button onclick="pressNum('9')">9</button>
+        <button class="btn-op" onclick="setOp('add')">+</button>
+        <button onclick="pressNum('4')">4</button><button onclick="pressNum('5')">5</button><button onclick="pressNum('6')">6</button>
+        <button onclick="pressNum('0')">0</button>
+        <button onclick="pressNum('1')">1</button><button onclick="pressNum('2')">2</button><button onclick="pressNum('3')">3</button>
+        <button class="btn-op" style="color: #f87171 !important" onclick="backspace()">⌫</button>
+        <button class="btn-equal" onclick="calculate()">=</button>
+    </div>
+</div>
+
+<script>
+    let buffer = "0";
+    let storedValue = null;
+    let currentOp = null;
+    let memory = [null, null, null];
+    let historyRecords = [];
+    let waitingForNewValue = false;
+
+    window.onload = () => {
+        loadFromLocalStorage();
+        setupHaptics();
+        render();
+        updateMemoryDisplay();
+        updateHistoryUI();
+        setInterval(updateArrivalTime, 30000);
+    };
+
+    function toggleHistory() {
+        document.getElementById('historyPanel').classList.toggle('show');
+        if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    function addToHistory(opText, resultText) {
+        const entry = {
+            op: opText,
+            res: resultText,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        historyRecords.unshift(entry);
+        if (historyRecords.length > 30) historyRecords.pop();
+        updateHistoryUI();
+        saveToLocalStorage();
+    }
+
+    function updateHistoryUI() {
+        const container = document.getElementById('historyListContainer');
+        container.innerHTML = historyRecords.length ? '' : '<div style="text-align:center; color:var(--text-dim); margin-top:30px; font-size:0.8rem;">No hay registros guardados</div>';
+        historyRecords.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<span>${item.time}</span> ${item.op} = <strong>${item.res}</strong>`;
+            container.appendChild(div);
+        });
+    }
+
+    function clearHistory() {
+        if(confirm("¿Borrar todo el historial?")) {
+            historyRecords = [];
+            updateHistoryUI();
+            saveToLocalStorage();
+        }
+    }
+
+    function toggleThemeMenu(e) {
+        e.stopPropagation();
+        document.getElementById('themeMenu').classList.toggle('show');
+    }
+
+    function closeMenus() {
+        document.getElementById('themeMenu').classList.remove('show');
+    }
+
+    function setTheme(theme, el) {
+        document.body.className = theme === 'default' ? '' : 'theme-' + theme;
+        document.querySelectorAll('.theme-dot').forEach(dot => dot.classList.remove('active'));
+        el.classList.add('active');
+        localStorage.setItem('timeCalcTheme', theme);
+        closeMenus();
+    }
+
+    async function copyDisplay() {
+        const text = document.getElementById('display').innerText;
+        try {
+            await navigator.clipboard.writeText(text);
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = "¡COPIADO!";
+            setTimeout(() => btn.innerText = "COPIAR", 1500);
+        } catch (err) {}
+    }
+
+    function setupHaptics() {
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => { if (navigator.vibrate) navigator.vibrate(10); });
+        });
+    }
+
+    function updateArrivalTime() {
+        const totalMinutes = getMinutes(buffer);
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + totalMinutes);
+        document.getElementById('arrival-time').innerText = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    function saveToLocalStorage() {
+        const state = { buffer, storedValue, currentOp, memory, historyRecords, waitingForNewValue };
+        localStorage.setItem('timeCalcStateV3', JSON.stringify(state));
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('timeCalcStateV3');
+        if (saved) {
+            const state = JSON.parse(saved);
+            buffer = state.buffer || "0";
+            storedValue = state.storedValue;
+            currentOp = state.currentOp;
+            memory = state.memory || [null, null, null];
+            historyRecords = state.historyRecords || [];
+            waitingForNewValue = state.waitingForNewValue;
+        }
+        const savedTheme = localStorage.getItem('timeCalcTheme');
+        if (savedTheme && savedTheme !== 'default') {
+            document.body.className = 'theme-' + savedTheme;
+        }
+    }
+
+    function formatBuffer(str) {
+        let val = str.padStart(3, '0');
+        let mins = val.slice(-2);
+        let hrs = val.slice(0, -2) || "0";
+        return `${parseInt(hrs)}h ${mins}m`;
+    }
+
+    function getMinutes(str) {
+        let val = str.padStart(3, '0');
+        return (parseInt(val.slice(0, -2) || 0) * 60) + parseInt(val.slice(-2));
+    }
+
+    function pressNum(num) {
+        if (buffer === "0" || waitingForNewValue) { buffer = num; waitingForNewValue = false; }
+        else { buffer += num; }
+        render(); saveToLocalStorage();
+    }
+
+    function addShortcut(minsToAdd) {
+        let total = getMinutes(buffer) + minsToAdd;
+        buffer = (Math.floor(total / 60) * 100 + (total % 60)).toString();
+        waitingForNewValue = false; render(); saveToLocalStorage();
+    }
+
+    function backspace() {
+        if (waitingForNewValue) return;
+        buffer = buffer.length > 1 ? buffer.slice(0, -1) : "0";
+        render(); saveToLocalStorage();
+    }
+
+    function render() {
+        document.getElementById('display').innerText = formatBuffer(buffer);
+        updateArrivalTime();
+    }
+
+    function setOp(op) {
+        if (currentOp !== null && !waitingForNewValue) calculate(false);
+        storedValue = getMinutes(buffer);
+        currentOp = op;
+        document.getElementById('history-mini').innerText = `${formatBuffer(buffer)} ${{add:'+', sub:'-', mul:'×'}[op]}`;
+        waitingForNewValue = true;
+        saveToLocalStorage();
+    }
+
+    function calculate(isFinal = true) {
+        if (currentOp === null) return;
+        let currentVal = getMinutes(buffer);
+        let opSym = {add:'+', sub:'-', mul:'×'}[currentOp];
+        let prevFormatted = formatBuffer(storedValue.toString().padStart(3, '0'));
+        let currentFormatted = currentOp === 'mul' ? buffer : formatBuffer(buffer);
+
+        let resultMins = currentOp === 'add' ? storedValue + currentVal : currentOp === 'sub' ? storedValue - currentVal : storedValue * (parseInt(buffer) || 1);
+        
+        const h = Math.floor(Math.abs(resultMins) / 60);
+        const m = Math.abs(resultMins) % 60;
+        let resultFormatted = `${h}h ${m.toString().padStart(2, '0')}m`;
+        
+        if (isFinal) {
+            addToHistory(`${prevFormatted} ${opSym} ${currentFormatted}`, resultFormatted);
+            document.getElementById('history-mini').innerText = "";
+            currentOp = null;
+        }
+        
+        buffer = (h * 100 + m).toString();
+        waitingForNewValue = true;
+        render(); saveToLocalStorage();
+    }
+
+    function handleMem(slot) {
+        const index = slot - 1;
+        if (memory[index] === null) { memory[index] = getMinutes(buffer); }
+        else {
+            let total = memory[index];
+            buffer = (Math.floor(total / 60) * 100 + (total % 60)).toString();
+            waitingForNewValue = false; render();
+        }
+        updateMemoryDisplay(); saveToLocalStorage();
+    }
+
+    function clearMemSlot(slot, event) {
+        event.stopPropagation(); memory[slot-1] = null;
+        updateMemoryDisplay(); saveToLocalStorage();
+    }
+
+    function updateMemoryDisplay() {
+        memory.forEach((val, i) => {
+            const btn = document.getElementById(`m${i+1}`);
+            btn.innerText = val === null ? `M${i+1}: --` : `M${i+1}: ${Math.floor(val/60)}h ${(val%60).toString().padStart(2,'0')}m`;
+        });
+    }
+
+    function clearCalc() {
+        buffer = "0"; storedValue = null; currentOp = null; waitingForNewValue = false;
+        document.getElementById('history-mini').innerText = "";
+        render(); saveToLocalStorage();
+    }
+</script>
+</body>
+</html>
