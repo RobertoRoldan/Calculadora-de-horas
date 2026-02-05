@@ -1,17 +1,15 @@
 {
-  "name": "TimeCalc Pro",
-  "short_name": "TimeCalc",
-  "description": "Calculadora de tiempo",
-  "start_url": "./index.html",
+  "name": "Calculadora de Tiempo",
+  "short_name": "TiempoCalc",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#38bdf8",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzFmMjkzYiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMjAiLz48cGF0aCBkPSJNMjU2IDEyMHYxMzZsOTAgOTAiIHN0cm9rZT0iIzM4YmRmOCIgc3Ryb2tlLXdpZHRoPSIyNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIi8+PHJlY3QgeD0iMzMwIiB5PSIzMzAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iMjAiIGZpbGw9IiMzOGJkZjgiLz48cGF0aCBkPSJNMzYwIDM3MGg2ME0zNjAgNDEwaDYwIiBzdHJva2U9IiMxZTI5M2IiIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlS6sIAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRF////19fX5OTk8PDw2dnZ7u7u9/f339/f6urq7+/v4eHh5ubm4uLi6+vr9PT0////GxscYgAAAAlwSFlzAAALEgAACxIB0t1+/AAAAW5JREFUeNrt20mSgzAMBFAmY8D737IUkpU9mUnBy6S799OfSjLIsm0XAAAAAAAAAAAAAAAAgL+y7m8A7Onm66Y5zD13XTe9mOa6fR0/L+fX9X06L8dxHCfP/X7Sbe8Pz7pSNo06XpZleZ7OsyzL8vI8D+W7Tf08R7eNInXm6N43OubYc3p9f68VofZub7u7r993t2687W6f53NfV2p3N6m9E4Tae8F2p2vYnS7X7nQ5u9Pl7E6Xsztdzu50+S93FzYAn9vd0Xb3T7tb0e7+YncS3Yl0J9KdeHdq3Yl2p9SdaHda3Yl2p9WdaHdK3Yl2p9SdaHcq3Yl2J9KdSHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0J9KdaHci3Yl0/wsAAP//AwA/HToP166oVwAAAABJRU5ErkJggg==",
+      "sizes": "192x192",
+      "type": "image/png"
     }
   ]
 }
